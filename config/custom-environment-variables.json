@@ -1,0 +1,4 @@
+{
+    "jwtPrivateKey" : "websec_jwtPrivateKey",
+    "referralKey" : "websec_referralKey"
+}

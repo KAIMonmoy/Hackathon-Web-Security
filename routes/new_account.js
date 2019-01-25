@@ -1,0 +1,35 @@
+const {User, validate} = require('../models/user_model');
+const config = require('config');
+const _ = require('lodash');
+const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
+const express = require('express');
+const bcrypt = require('bcrypt');
+const router = express.Router();
+
+router.post('/', async (req, res) => {
+    const { error } = validate(req.body);
+    if(error) return res.status(400).send(error.details[0].message);
+
+    if(Boolean(req.body.isAdmin) === true || Boolean(req.body.isModerator) === true) {
+        if(req.body.referralCode !== config.get("referralKey")) {
+            return res.status(403).send('Request Denied!');
+        }
+    }
+ 
+    let user = await User.findOne({email: req.body.email});
+    if(user) return res.status(400).send('User already registered!');
+
+    user = new User(_.pick(req.body, ['username', 'email', 'password', 'isAdmin', 'isModerator']));
+    
+    const salt = await bcrypt.genSalt(10);
+    user.password = await bcrypt.hash(user.password, salt);
+    
+    await user.save();
+
+    const token = user.generateAuthToken();
+    res.header('x-auth-token', token).send(_.pick(user,['_id', 'username', 'email']));
+
+});
+
+module.exports = router;
