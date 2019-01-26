@@ -34,10 +34,10 @@ router.put('/:id/profile/update', auth, async (req, res) => {
     const { error } = validate(req.body); 
     if (error) return res.status(400).send(error.details[0].message);
 
-    const oldUser = User.findById(req.params.id);
+    const oldUser = await User.findById(req.params.id);
     if (!oldUser) return res.status(404).send('User with the given ID was not found.');
 
-    const user = await User.findByIdAndUpdate(req.params.id, { 
+    let user = await User.findByIdAndUpdate(req.params.id, { 
         username: req.body.username
     }, {new : true});
     
